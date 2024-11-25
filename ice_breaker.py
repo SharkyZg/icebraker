@@ -1,13 +1,12 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-import os
 from dotenv_vault import load_dotenv
 from third_parties.linkedin import scrape_linkedin_profile
+from agents.linkedin_lookup_agent import lookup as linkedin_lookup_agent
 
-if __name__ == "__main__":
-    load_dotenv()
-    print("Hello, World!")
-    print(os.getenv("OPENAI_API_KEY"))
+def ice_break_with(name: str) -> str:
+    linkedin = linkedin_lookup_agent(name=name)
+    linkedin_data = scrape_linkedin_profile(linkedin_profile_url=linkedin['output'])
 
     summary_template = """
     Given the linkedin information {information} about a person, I want you to create:
@@ -17,8 +16,11 @@ if __name__ == "__main__":
 
     summary_prompt = PromptTemplate.from_template(summary_template)
 
-    summary_chain = summary_prompt | ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-
-    linkedin_data = scrape_linkedin_profile(linkedin_profile_url="https://www.linkedin.com/in/eden-marco", mock=True)
+    summary_chain = summary_prompt | ChatOpenAI(model="gpt-4o-mini", temperature=0)
     response = summary_chain.invoke({"information": linkedin_data})
-    print(response.content)
+    print(response)
+
+if __name__ == "__main__":
+    load_dotenv()
+    print("Ice Breaker")
+    ice_break_with("Marko Sarkanj")
