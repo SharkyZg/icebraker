@@ -3,6 +3,7 @@ from langchain_openai import ChatOpenAI
 from dotenv_vault import load_dotenv
 from third_parties.linkedin import scrape_linkedin_profile
 from agents.linkedin_lookup_agent import lookup as linkedin_lookup_agent
+from output_parsers import summary_parser
 
 def ice_break_with(name: str) -> str:
     linkedin = linkedin_lookup_agent(name=name)
@@ -12,15 +13,17 @@ def ice_break_with(name: str) -> str:
     Given the linkedin information {information} about a person, I want you to create:
     1. A short summary of the person
     2. Two interesting facts about the person
+
+   \n{format_instructions}
     """
 
-    summary_prompt = PromptTemplate.from_template(summary_template)
+    summary_prompt = PromptTemplate.from_template(summary_template, partial_variables={"format_instructions": summary_parser.get_format_instructions()})
 
-    summary_chain = summary_prompt | ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    summary_chain = summary_prompt | ChatOpenAI(model="gpt-4o-mini", temperature=0) | summary_parser
     response = summary_chain.invoke({"information": linkedin_data})
     print(response)
 
 if __name__ == "__main__":
     load_dotenv()
     print("Ice Breaker")
-    ice_break_with("Marko Sarkanj")
+    ice_break_with("Agim Ramqaj")
